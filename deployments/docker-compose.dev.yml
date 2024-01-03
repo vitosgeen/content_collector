@@ -1,0 +1,55 @@
+version: '3.9'
+name: content_collector
+
+services:
+  content_collector:
+    container_name: content_collector_app
+    env_file: ./../configs/.env
+    tty: true
+    build:
+      context: ./../
+      dockerfile: ./build/packpage/Dockerfile
+    ports:
+      - ${PORT_APP}:${PORT_APP}
+    # restart: on-failure
+    volumes:
+      - .:/content_collector
+      - ./../files:/files
+    depends_on:
+      - mongodb
+      - mongo-express
+    networks:
+      - content_collector_network
+
+  mongodb:
+    image: mongo
+    container_name: content_collector_mongodb
+    # restart: always
+    ports:
+      - "${MONGODB_PORT_LOCAL}:${MONGODB_PORT}"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
+    volumes:
+      - ./../data/db:/data/mongodb
+    networks:
+      - content_collector_network
+
+  mongo-express:
+    image: mongo-express
+    # restart: always
+    ports:
+      - ${MONGO_EXPRESS_PORT_LOCAL}:${MONGO_EXPRESS_PORT}
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_PASS}
+      ME_CONFIG_MONGODB_URL: ${MONGODB_HOST}://${MONGODB_USER}:${MONGODB_PASS}@${MONGODB_HOST}:${MONGODB_PORT}/
+    networks:
+      - content_collector_network
+      
+volumes:
+  content_collector:
+  
+networks:
+  content_collector_network:
+    driver: bridge
