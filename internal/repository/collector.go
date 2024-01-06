@@ -44,6 +44,9 @@ func (r *CollectorMongoDBRepository) GetByUrl(url string) (*model.CollectorRepos
 	var collector model.CollectorRepository
 	err := r.CollectorCollection.FindOne(r.context, filter).Decode(&collector)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, apperrors.MongoCollectorRepositoryGetByIdErrNoDocuments.AppendMessage(err)
+		}
 		return nil, apperrors.MongoCollectorRepositoryGetByIdError.AppendMessage(err)
 	}
 	return &collector, nil

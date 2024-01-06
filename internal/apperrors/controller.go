@@ -23,4 +23,9 @@ var (
 		Code:     "SERVICES_COLLECTOR_GORUTINE_CLEARING_LOOP_DELETE_OLD_COLLECTORS_ERR",
 		HTTPCode: http.StatusInternalServerError,
 	}
+	ValidatorCustomValidatorValidate = AppError{
+		Message:  "Failed to validate",
+		Code:     "VALIDATOR_CUSTOM_VALIDATOR_VALIDATE_ERR",
+		HTTPCode: http.StatusBadRequest,
+	}
 )
