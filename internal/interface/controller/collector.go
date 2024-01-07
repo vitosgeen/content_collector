@@ -1,18 +1,21 @@
 package controller
 
 import (
-	"content_collector/internal/apperrors"
-	"content_collector/internal/domain/model"
-	"content_collector/internal/services"
 	"fmt"
 	"net/http"
 	"time"
 
+	"content_collector/internal/apperrors"
+	"content_collector/internal/domain/model"
+	"content_collector/internal/services"
+
 	"github.com/labstack/echo/v4"
 )
 
-var ClearingInterval = 60
-var ClearingStart = 0
+var (
+	ClearingInterval = 60
+	ClearingStart    = 0
+)
 
 type ICollectorController interface {
 	GetData(c echo.Context) error
@@ -34,13 +37,17 @@ func NewCollectorController(collectorService services.ICollectorService) ICollec
 
 func (controller *CollectorController) GetData(ctx echo.Context) error {
 	// validate request
-	request := new(model.CollectorRequest)
+	request := &model.CollectorRequest{}
 	err := ctx.Bind(request)
 	if err != nil {
 		appError := apperrors.ControllerCollectorGetDataError.AppendMessage(err)
 		return ctx.JSON(appError.HTTPCode, appError.Message)
 	}
-
+	err = ctx.Validate(request)
+	if err != nil {
+		appError := apperrors.ControllerCollectorGetDataError.AppendMessage(err)
+		return ctx.JSON(appError.HTTPCode, appError.Message)
+	}
 	// call service
 	html, err := controller.CollectorService.Collect(request.Url)
 	if err != nil {
@@ -82,7 +89,7 @@ func gorutineClearingLoop(collectorService services.ICollectorService) {
 		ClearingStart++
 		err := collectorService.DeleteOldCollectors()
 		if err != nil {
-			apperrors.ServicesCollectorGorutineClearingLoopDeleteOldCollectors.AppendMessage(err)
+			apperrors.ServicesCollectorGorutineClearingLoopDeleteOldCollectors.AppendMessage(err) //nolint:errcheck
 			break
 		}
 

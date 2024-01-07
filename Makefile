@@ -5,7 +5,7 @@ run:
 	go run ./cmd/collector/main.go
 
 lint:
-	gofumpt -w -s ./..
+	gofumpt -w -s ./
 	golangci-lint run --fix
 
 generate:

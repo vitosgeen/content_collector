@@ -29,6 +29,11 @@ var (
 		Code:     "MONGO_COLLECTOR_REPOSITORY_DELETE_ERR",
 		HTTPCode: http.StatusInternalServerError,
 	}
+	MongoCollectorRepositoryGetByIdErrNoDocuments = AppError{
+		Message:  "Failed to get collector by id",
+		Code:     "MONGO_COLLECTOR_REPOSITORY_GET_BY_ID_ERR_NO_DOCUMENTS",
+		HTTPCode: http.StatusInternalServerError,
+	}
 	MongoCollectorRepositoryGetByIdError = AppError{
 		Message:  "Failed to get collector by id",
 		Code:     "MONGO_COLLECTOR_REPOSITORY_GET_BY_ID_ERR",

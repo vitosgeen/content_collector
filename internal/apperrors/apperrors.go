@@ -47,6 +47,16 @@ var (
 		Code:     "SERVICES_COLLECTOR_COLLECT_NEW_CHROME_DRIVER_SERVICE_ERR",
 		HTTPCode: http.StatusInternalServerError,
 	}
+	ServicesCollectorCollectGetProxyRandomError = AppError{
+		Message:  "Failed to collect",
+		Code:     "SERVICES_COLLECTOR_COLLECT_GET_PROXY_RANDOM_ERR",
+		HTTPCode: http.StatusInternalServerError,
+	}
+	ServicesCollectorCollectScrapError = AppError{
+		Message:  "Failed to collect",
+		Code:     "SERVICES_COLLECTOR_COLLECT_SCRAP_ERR",
+		HTTPCode: http.StatusInternalServerError,
+	}
 	ServicesCollectorCollectGetByUrlError = AppError{
 		Message:  "Failed to collect",
 		Code:     "SERVICES_COLLECTOR_COLLECT_GET_BY_URL_ERR",

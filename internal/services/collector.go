@@ -1,9 +1,13 @@
 package services
 
 import (
+	"fmt"
+
 	"content_collector/internal/apperrors"
 	"content_collector/internal/domain/model"
 	"content_collector/internal/repository"
+	"content_collector/internal/utils/scrappers"
+	"content_collector/internal/utils/smartproxy"
 
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
@@ -21,56 +25,54 @@ type ICollectorService interface {
 
 type CollectorService struct {
 	Collector     model.Collector
+	SmartProxy    smartproxy.ISmartProxyFile
+	Scrapper      scrappers.IScrappers
 	ProxyIp       string
 	CollectorRepo repository.ICollectorRepository
 }
 
-func NewCollectorService(pathChromeDriver string, portChromeDriver int, collectorRepo repository.ICollectorRepository) ICollectorService {
+func NewCollectorService(
+	smartproxy smartproxy.ISmartProxyFile,
+	pathChromeDriver string,
+	portChromeDriver int,
+	collectorRepo repository.ICollectorRepository,
+	scrapper scrappers.IScrappers,
+) ICollectorService {
 	return &CollectorService{
 		Collector: model.Collector{
 			PathChromeDriver: pathChromeDriver,
 			PortChromeDriver: portChromeDriver,
 		},
+		SmartProxy:    smartproxy,
 		CollectorRepo: collectorRepo,
+		Scrapper:      scrapper,
 	}
 }
 
 func (c *CollectorService) Collect(url string) (string, error) {
 	loadedCollector, err := c.CollectorRepo.GetByUrl(url)
 	if err != nil {
-		return "", apperrors.ServicesCollectorCollectGetByUrlError.AppendMessage(err)
+		appError := err.(*apperrors.AppError)
+		if appError.Code != apperrors.MongoCollectorRepositoryGetByIdErrNoDocuments.Code {
+			return "", apperrors.ServicesCollectorCollectGetByUrlError.AppendMessage(err)
+		}
 	}
 
 	if loadedCollector != nil {
 		return loadedCollector.Data, nil
 	}
 
-	service, err := selenium.NewChromeDriverService(c.Collector.PathChromeDriver, c.Collector.PortChromeDriver)
+	proxyIpSmart, err := c.SmartProxy.GetProxyRandomSmartProxy()
 	if err != nil {
-		return "", apperrors.ServicesCollectorCollectNewChromeDriverServiceError.AppendMessage(err)
+		return "", apperrors.ServicesCollectorCollectGetProxyRandomError.AppendMessage(err)
 	}
 
-	defer service.Stop() //nolint:errcheck
+	c.Scrapper.SetProxy(proxyIpSmart.String())
+	c.Scrapper.SetSmartProxy(proxyIpSmart)
 
-	caps := addCapabilities(c.ProxyIp)
-	driver, err := selenium.NewRemote(caps, "")
+	html, err := c.Scrapper.Scrap(url)
 	if err != nil {
-		return "", apperrors.ServicesCollectorCollectNewRemoteError.AppendMessage(err)
-	}
-
-	err = driver.MaximizeWindow("")
-	if err != nil {
-		return "", apperrors.ServicesCollectorCollectMaximizeWindow.AppendMessage(err)
-	}
-
-	err = driver.Get(url)
-	if err != nil {
-		return "", apperrors.ServicesCollectorCollectDriverGet.AppendMessage(err)
-	}
-
-	html, err := driver.PageSource()
-	if err != nil {
-		return "", apperrors.ServicesCollectorCollectPageSource.AppendMessage(err)
+		return "", apperrors.ServicesCollectorCollectScrapError.AppendMessage(err)
 	}
 
 	collectorCreate := &model.CollectorRepository{
@@ -142,19 +144,21 @@ func (c *CollectorService) DeleteOldCollectors() error {
 
 func addCapabilities(proxyIp string) selenium.Capabilities {
 	caps := selenium.Capabilities{}
+	args := []string{}
 	if proxyIp == "" {
-		caps.AddChrome(chrome.Capabilities{Args: []string{
-			"--headless",
-		}})
+		args = append(args, "--headless")
 	} else {
-		caps.AddChrome(chrome.Capabilities{Args: []string{
-			"--headless",
-			"--proxy-server=" + proxyIp,
-		}})
+		args = append(args, "--headless")
+		args = append(args, "--proxy-server="+proxyIp)
+		proxy := selenium.Proxy{
+			Type: selenium.Manual,
+			HTTP: "http://" + proxyIp,
+		}
+		caps.AddProxy(proxy)
 	}
 
 	// madify request headers to avoid detection
-	caps.AddChrome(chrome.Capabilities{Args: []string{
+	args = append(args, []string{
 		"--headless=new",
 		"--user-agent=" + GetRandomUserAgent(),
 		"--disable-blink-features=AutomationControlled",
@@ -169,7 +173,13 @@ func addCapabilities(proxyIp string) selenium.Capabilities {
 		"--disable-features=site-per-process",
 		"--disable-features=NetworkService",
 		"--disable-features=NetworkServiceInProcess",
-	}})
+	}...)
+
+	caps.AddChrome(chrome.Capabilities{
+		Args: args,
+	})
+
+	fmt.Println("proxyIp--------caps", caps)
 
 	return caps
 }

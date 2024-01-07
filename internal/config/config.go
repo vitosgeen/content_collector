@@ -13,15 +13,15 @@ const (
 )
 
 type Config struct {
-	Port     string `env:"PORT,required"`
-	Mongo    *MongoConfig
-	Selenium *SeleniumChromeConfig
+	Environment    string `env:"ENVIRONMENT,required"`
+	LogLevel       string `env:"LOG_LEVEL,required"`
+	Port           string `env:"PORT,required"`
+	SmartProxyPath string `env:"SMART_PROXY_FILE,required"`
+	Mongo          *MongoConfig
+	Selenium       *SeleniumChromeConfig
 }
 
 type SeleniumChromeConfig struct {
-	Environment      string `env:"ENVIRONMENT,required"`
-	LogLevel         string `env:"LOG_LEVEL,required"`
-	Port             string `env:"PORT,required"`
 	ChromeDriverPath string `env:"PATH,required"`
 	ChromeDriverPort int    `env:"PORT,required"`
 }
