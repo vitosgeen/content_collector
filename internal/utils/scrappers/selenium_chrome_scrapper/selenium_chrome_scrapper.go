@@ -113,3 +113,7 @@ func (s SeleniumChromeScrapper) addCapabilities() selenium.Capabilities {
 
 	return caps
 }
+
+func (s *SeleniumChromeScrapper) Decode(htmlString string) (string, error) {
+	return htmlString, nil
+}

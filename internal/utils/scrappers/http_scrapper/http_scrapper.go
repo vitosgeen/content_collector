@@ -56,11 +56,11 @@ func (h *HttpScpaper) Scrap(urlTarget string) (string, error) {
 		return "", err
 	}
 
-	// madify request headers to avoid detection
+	// modify request headers to avoid detection
+	requestTarget.Header.Add("Accept-Charset", "UTF-8")
 	requestTarget.Header.Add("User-Agent", h.userAgent)
 	requestTarget.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
 	requestTarget.Header.Add("Accept-Language", "en-US,en;q=0.5")
-	requestTarget.Header.Add("Accept-Encoding", "gzip, deflate, br")
 	requestTarget.Header.Add("Connection", "keep-alive")
 	requestTarget.Header.Add("Upgrade-Insecure-Requests", "1")
 	requestTarget.Header.Add("Cache-Control", "no-cache")
@@ -92,7 +92,6 @@ func (h *HttpScpaper) Scrap(urlTarget string) (string, error) {
 	requestTarget.Header.Add("Cookie", "__cf_bm=KEBcS5Kl48hyiVOLPsKYgU1IBmfz44LbdeLwVD9vCrw-1704568358-1-AcprFpyOg1tax/DPqtBvFQEH0WddTNiX+xK6wT/nftN4IKMAIOiSONVDThEvbivqCIhHh4uFDaQYSxNP6HNZRFI=; _ga_GZ1WW2KT3Q=GS1.1.1704568359.1.1.1704568376.43.0.0; _ga=GA1.2.80261033.1704568360; _gid=GA1.2.296099666.1704568360")
 
 	response, err := client.Do(requestTarget)
-	fmt.Println("response", response)
 	if err != nil {
 		return "", err
 	}
@@ -106,6 +105,13 @@ func (h *HttpScpaper) Scrap(urlTarget string) (string, error) {
 	if response.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("status code: %d", response.StatusCode)
 	}
+	bodyString := fmt.Sprintf("%s\n", body)
 
-	return string(body), nil
+	// bodyStringEscapedHTML := template.HTMLEscapeString(bodyString)
+	return bodyString, nil
+}
+
+func (h *HttpScpaper) Decode(htmlString string) (string, error) {
+
+	return htmlString, nil
 }

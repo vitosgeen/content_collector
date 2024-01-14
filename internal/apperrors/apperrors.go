@@ -87,6 +87,11 @@ var (
 		Code:     "SERVICES_COLLECTOR_COLLECT_CREATE_ERR",
 		HTTPCode: http.StatusInternalServerError,
 	}
+	ServicesCollectorCollectDecodeError = AppError{
+		Message:  "Failed to collect",
+		Code:     "SERVICES_COLLECTOR_COLLECT_DECODE_ERR",
+		HTTPCode: http.StatusInternalServerError,
+	}
 
 	EnvConfigLoadError = AppError{
 		Message:  "Failed to load env file",
