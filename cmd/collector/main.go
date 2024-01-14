@@ -39,15 +39,10 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	collectorRepo := repository.NewCollectorMongoDBRepository(cfg, db, context.TODO())
 	scrapper := httpscrapper.NewHttpScpaper()
-	// scrapper := seleniumchromescrapper.NewSeleniumChromeScrapper(cfg.Selenium.ChromeDriverPath, cfg.Selenium.ChromeDriverPort)
-	collectorService := services.NewCollectorService(smartproxyObject, cfg.Selenium.ChromeDriverPath, cfg.Selenium.ChromeDriverPort, collectorRepo, scrapper)
-	// err = collectorService.CheckCollector()
-	// if err != nil {
-	// 	logger.Fatal(apperrors.ServerStartError.AppendMessage(err))
-	// }
 
+	collectorRepo := repository.NewCollectorMongoDBRepository(cfg, db, context.TODO())
+	collectorService := services.NewCollectorService(smartproxyObject, cfg.Selenium.ChromeDriverPath, cfg.Selenium.ChromeDriverPort, collectorRepo, scrapper)
 	controller := controller.NewCollectorController(collectorService)
 
 	e := echo.New()
