@@ -17,7 +17,7 @@ generate:
 
 dev:
 	echo "Starting docker dev environment"
-	docker-compose --env-file ./configs/.env -f deployments/docker-compose.dev.yml up content_collector --build
+	docker-compose --env-file ./configs/.env -f deployments/docker-compose.dev.yml up content_collector --build -d
 
 prod:
 	echo "Starting docker prod environment"
