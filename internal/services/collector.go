@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	"content_collector/internal/apperrors"
 	"content_collector/internal/domain/model"
 	"content_collector/internal/repository"
@@ -16,7 +14,7 @@ import (
 const defaultUrlAddress = "https://www.google.com"
 
 type ICollectorService interface {
-	Collect(url string) (string, error)
+	Collect(url string) (*scrappers.ScrapperData, error)
 	Close() error
 	SetProxy(proxyIp string)
 	CheckCollector() error
@@ -49,43 +47,49 @@ func NewCollectorService(
 	}
 }
 
-func (c *CollectorService) Collect(url string) (string, error) {
+func (c *CollectorService) Collect(url string) (*scrappers.ScrapperData, error) {
 	loadedCollector, err := c.CollectorRepo.GetByUrl(url)
 	if err != nil {
 		appError := err.(*apperrors.AppError)
 		if appError.Code != apperrors.MongoCollectorRepositoryGetByIdErrNoDocuments.Code {
-			return "", apperrors.ServicesCollectorCollectGetByUrlError.AppendMessage(err)
+			return nil, apperrors.ServicesCollectorCollectGetByUrlError.AppendMessage(err)
 		}
 	}
 
 	if loadedCollector != nil {
-		return loadedCollector.Data, nil
+		return &scrappers.ScrapperData{
+			Url:    loadedCollector.Url,
+			Length: len(loadedCollector.Data),
+			Data:   loadedCollector.Data,
+			Code:   loadedCollector.DataCode,
+			Status: loadedCollector.DataStatusText,
+		}, nil
 	}
 
 	proxyIpSmart, err := c.SmartProxy.GetProxyRandomSmartProxy()
 	if err != nil {
-		return "", apperrors.ServicesCollectorCollectGetProxyRandomError.AppendMessage(err)
+		return nil, apperrors.ServicesCollectorCollectGetProxyRandomError.AppendMessage(err)
 	}
 
 	c.Scrapper.SetProxy(proxyIpSmart.String())
 	c.Scrapper.SetSmartProxy(proxyIpSmart)
 
-	html, err := c.Scrapper.Scrap(url)
+	scrapStruct, err := c.Scrapper.Scrap(url)
 	if err != nil {
-		return "", apperrors.ServicesCollectorCollectScrapError.AppendMessage(err)
+		return nil, apperrors.ServicesCollectorCollectScrapError.AppendMessage(err)
 	}
 
 	collectorCreate := &model.CollectorRepository{
 		Url:    url,
-		Data:   html,
+		Data:   scrapStruct.Data,
 		Status: model.CollectorRepositoryStatusActive,
 	}
 	err = c.CollectorRepo.Create(collectorCreate)
 	if err != nil {
-		return "", apperrors.ServicesCollectorCollectCreateError.AppendMessage(err)
+		return nil, apperrors.ServicesCollectorCollectCreateError.AppendMessage(err)
 	}
 
-	return html, nil
+	return scrapStruct, nil
 }
 
 func (c *CollectorService) Close() error {
@@ -178,8 +182,6 @@ func addCapabilities(proxyIp string) selenium.Capabilities {
 	caps.AddChrome(chrome.Capabilities{
 		Args: args,
 	})
-
-	fmt.Println("proxyIp--------caps", caps)
 
 	return caps
 }

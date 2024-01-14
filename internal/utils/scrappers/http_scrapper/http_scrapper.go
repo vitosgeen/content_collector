@@ -37,7 +37,7 @@ func (h *HttpScpaper) SetUserAgent(userAgent string) {
 	h.userAgent = userAgent
 }
 
-func (h *HttpScpaper) Scrap(urlTarget string) (string, error) {
+func (h *HttpScpaper) Scrap(urlTarget string) (*scrappers.ScrapperData, error) {
 	proxyUrl := &url.URL{
 		Scheme: "http",
 		User:   url.UserPassword(h.smartproxyIp.Username, h.smartproxyIp.Password),
@@ -53,7 +53,7 @@ func (h *HttpScpaper) Scrap(urlTarget string) (string, error) {
 
 	requestTarget, err := http.NewRequest("GET", urlTarget, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// modify request headers to avoid detection
@@ -93,25 +93,31 @@ func (h *HttpScpaper) Scrap(urlTarget string) (string, error) {
 
 	response, err := client.Do(requestTarget)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("status code: %d", response.StatusCode)
+		return nil, fmt.Errorf("status code: %d", response.StatusCode)
 	}
 	bodyString := fmt.Sprintf("%s\n", body)
 
-	// bodyStringEscapedHTML := template.HTMLEscapeString(bodyString)
-	return bodyString, nil
+	scrapperData := &scrappers.ScrapperData{
+		Url:    urlTarget,
+		Length: len(bodyString),
+		Data:   bodyString,
+		Code:   response.StatusCode,
+		Status: response.Status,
+	}
+
+	return scrapperData, nil
 }
 
 func (h *HttpScpaper) Decode(htmlString string) (string, error) {
-
 	return htmlString, nil
 }

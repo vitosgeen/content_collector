@@ -4,6 +4,7 @@ package seleniumchromescrapper
 
 import (
 	"fmt"
+	"net/http"
 
 	"content_collector/internal/apperrors"
 	"content_collector/internal/utils/scrappers"
@@ -40,10 +41,10 @@ func (s *SeleniumChromeScrapper) SetUserAgent(userAgent string) {
 	s.userAgent = userAgent
 }
 
-func (s *SeleniumChromeScrapper) Scrap(url string) (string, error) {
+func (s *SeleniumChromeScrapper) Scrap(url string) (*scrappers.ScrapperData, error) {
 	service, err := selenium.NewChromeDriverService(s.PathChromeDriver, s.PortChromeDriver)
 	if err != nil {
-		return "", apperrors.SeleniumChromeScrapperScrapNewChromeDriverServiceError.AppendMessage(err)
+		return nil, apperrors.SeleniumChromeScrapperScrapNewChromeDriverServiceError.AppendMessage(err)
 	}
 	defer service.Stop() //nolint:errcheck
 
@@ -51,25 +52,33 @@ func (s *SeleniumChromeScrapper) Scrap(url string) (string, error) {
 
 	driver, err := selenium.NewRemote(caps, "")
 	if err != nil {
-		return "", apperrors.SeleniumChromeScrapperScrapNewRemoteError.AppendMessage(err)
+		return nil, apperrors.SeleniumChromeScrapperScrapNewRemoteError.AppendMessage(err)
 	}
 
 	err = driver.MaximizeWindow("")
 	if err != nil {
-		return "", apperrors.SeleniumChromeScrapperScrapMaximizeWindow.AppendMessage(err)
+		return nil, apperrors.SeleniumChromeScrapperScrapMaximizeWindow.AppendMessage(err)
 	}
 
 	err = driver.Get(url)
 	if err != nil {
-		return "", apperrors.SeleniumChromeScrapperScrapDriverGet.AppendMessage(err)
+		return nil, apperrors.SeleniumChromeScrapperScrapDriverGet.AppendMessage(err)
 	}
 
 	html, err := driver.PageSource()
 	if err != nil {
-		return "", apperrors.SeleniumChromeScrapperScrapPageSource.AppendMessage(err)
+		return nil, apperrors.SeleniumChromeScrapperScrapPageSource.AppendMessage(err)
 	}
 
-	return html, nil
+	scrapperData := &scrappers.ScrapperData{
+		Url:    url,
+		Length: len(html),
+		Data:   html,
+		Code:   http.StatusOK,
+		Status: http.StatusText(http.StatusOK),
+	}
+
+	return scrapperData, nil
 }
 
 func (s SeleniumChromeScrapper) addCapabilities() selenium.Capabilities {

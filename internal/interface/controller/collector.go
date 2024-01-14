@@ -35,6 +35,10 @@ func NewCollectorController(collectorService services.ICollectorService) ICollec
 	}
 }
 
+// GetData is a method of the CollectorController struct that handles the HTTP GET request to collect data.
+// It validates the request, calls the CollectorService to collect data from the specified URL,
+// and returns the collected data as a JSON response.
+// If any error occurs during the process, it returns an appropriate error response.
 func (controller *CollectorController) GetData(ctx echo.Context) error {
 	// validate request
 	request := &model.CollectorRequest{}
@@ -49,7 +53,7 @@ func (controller *CollectorController) GetData(ctx echo.Context) error {
 		return ctx.JSON(appError.HTTPCode, appError.Message)
 	}
 	// call service
-	html, err := controller.CollectorService.Collect(request.Url)
+	scrapperData, err := controller.CollectorService.Collect(request.Url)
 	if err != nil {
 		appError := apperrors.ControllerCollectorCollect.AppendMessage(err)
 		return ctx.JSON(appError.HTTPCode, appError.Message)
@@ -57,13 +61,18 @@ func (controller *CollectorController) GetData(ctx echo.Context) error {
 
 	response := model.CollectResponse{
 		Url:    request.Url,
-		Data:   html,
-		Length: len(html),
+		Data:   scrapperData.Data,
+		Length: len(scrapperData.Data),
+		Code:   scrapperData.Code,
+		Status: scrapperData.Status,
 	}
 
 	return ctx.JSON(http.StatusOK, response)
 }
 
+// Clearing is a method of the CollectorController struct that handles the clearing of collected data.
+// It takes an echo.Context as a parameter and returns an error.
+// The method is responsible for clearing the collected data and returning any errors that occur during the process.
 func (controller *CollectorController) Clearing(ctx echo.Context) error {
 	if ClearingStart != 0 {
 		responseStr := fmt.Sprintf("Clearing already started. Start: %d", ClearingStart)
