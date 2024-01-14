@@ -8,8 +8,6 @@ import (
 	"content_collector/internal/utils/smartproxy"
 )
 
-const defaultUrlAddress = "https://www.google.com"
-
 type ICollectorService interface {
 	Collect(url string) (*scrappers.ScrapperData, error)
 	SetProxy(proxyIp string)

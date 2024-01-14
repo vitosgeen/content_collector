@@ -4,6 +4,9 @@ build:
 run:
 	go run ./cmd/collector/main.go
 
+test:
+	go test -v -cover ./...
+
 lint:
 	gofumpt -w -s ./
 	golangci-lint run --fix
