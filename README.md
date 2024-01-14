@@ -3,9 +3,10 @@
 The Content Collector is a GoLang application that allows users to collect and store content from various sources. It provides a simple and efficient way to scrape, parse, and save data from websites, APIs, or any other source.
 
 ## Features
-- Web pulling: The application can extract web page using selenium chrome
+- Extract web pages: The application can extract web page using http.NewRequest with proxy ip with auth
 
 ## Features in development
+- Extract web pages: The application can extract web page using crome selenium with proxy ip without auth
 - Web scraping: The application can extract data from HTML pages using CSS selectors or XPath expressions.
 - API integration: It can consume data from RESTful APIs and store it in a structured format.
 - Data parsing: The collected data can be parsed and transformed into a desired format.

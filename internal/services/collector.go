@@ -6,18 +6,13 @@ import (
 	"content_collector/internal/repository"
 	"content_collector/internal/utils/scrappers"
 	"content_collector/internal/utils/smartproxy"
-
-	"github.com/tebeka/selenium"
-	"github.com/tebeka/selenium/chrome"
 )
 
 const defaultUrlAddress = "https://www.google.com"
 
 type ICollectorService interface {
 	Collect(url string) (*scrappers.ScrapperData, error)
-	Close() error
 	SetProxy(proxyIp string)
-	CheckCollector() error
 	DeleteOldCollectors() error
 }
 
@@ -104,32 +99,6 @@ func (c *CollectorService) SetProxy(proxyIp string) {
 	c.ProxyIp = proxyIp
 }
 
-func (c *CollectorService) CheckCollector() error {
-	service, err := selenium.NewChromeDriverService(c.Collector.PathChromeDriver, c.Collector.PortChromeDriver)
-	if err != nil {
-		return apperrors.ServicesCollectorCheckCollectorNewChromeDriverServiceError.AppendMessage(err)
-	}
-
-	defer service.Stop() //nolint:errcheck
-
-	caps := addCapabilities(c.ProxyIp)
-	driver, err := selenium.NewRemote(caps, "")
-	if err != nil {
-		return apperrors.ServicesCollectorCheckCollectorNewRemoteError.AppendMessage(err)
-	}
-
-	err = driver.MaximizeWindow("")
-	if err != nil {
-		return apperrors.ServicesCollectorCheckCollectorMaximizeWindowError.AppendMessage(err)
-	}
-
-	if err := driver.Get(defaultUrlAddress); err != nil {
-		return apperrors.ServicesCollectorCheckCollectorDriverGetError.AppendMessage(err)
-	}
-
-	return nil
-}
-
 func (c *CollectorService) DeleteOldCollectors() error {
 	collectors, err := c.CollectorRepo.GetForDelete()
 	if err != nil {
@@ -144,44 +113,4 @@ func (c *CollectorService) DeleteOldCollectors() error {
 	}
 
 	return nil
-}
-
-func addCapabilities(proxyIp string) selenium.Capabilities {
-	caps := selenium.Capabilities{}
-	args := []string{}
-	if proxyIp == "" {
-		args = append(args, "--headless")
-	} else {
-		args = append(args, "--headless")
-		args = append(args, "--proxy-server="+proxyIp)
-		proxy := selenium.Proxy{
-			Type: selenium.Manual,
-			HTTP: "http://" + proxyIp,
-		}
-		caps.AddProxy(proxy)
-	}
-
-	// madify request headers to avoid detection
-	args = append(args, []string{
-		"--headless=new",
-		"--user-agent=" + GetRandomUserAgent(),
-		"--disable-blink-features=AutomationControlled",
-		"--disable-dev-shm-usage",
-		"--disable-gpu",
-		"--no-sandbox",
-		"--disable-features=VizDisplayCompositor",
-		"--disable-features=IsolateOrigins,site-per-process",
-		"--disable-site-isolation-trials",
-		"--disable-extensions",
-		"--disable-web-security",
-		"--disable-features=site-per-process",
-		"--disable-features=NetworkService",
-		"--disable-features=NetworkServiceInProcess",
-	}...)
-
-	caps.AddChrome(chrome.Capabilities{
-		Args: args,
-	})
-
-	return caps
 }
