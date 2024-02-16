@@ -29,3 +29,11 @@ prod:
 local:
 	echo "Starting docker local environment"
 	docker-compose --env-file ./configs/.env -f deployments/docker-compose.local.yml up content_collector --build
+
+stop:
+	echo "Stopping docker environment"
+	docker-compose stop
+
+down:
+	echo "Stopping docker environment"
+	docker-compose down

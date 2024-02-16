@@ -50,6 +50,26 @@ func (s *SeleniumChromeScrapper) Scrap(url string) (*scrappers.ScrapperData, err
 
 	caps := s.addCapabilities()
 
+	chromeProxyExtFileName := "files/proxy_auth_plugin.zip"
+	errBuildProxy := BuildProxyExtension(chromeProxyExtFileName, s.smartproxy.Host, s.smartproxy.Port, s.smartproxy.Username, s.smartproxy.Password)
+	if errBuildProxy != nil {
+		return nil, apperrors.SeleniumChromeScrapperScrapBuildProxyExtensionError.AppendMessage(errBuildProxy)
+	}
+
+	// add proxy extension to chrome capabilities with headless mode
+	chromeOptions := chrome.Capabilities{Args: []string{
+		"--headless=new",
+		"--disable-gpu",
+		"--no-sandbox",
+		"--disable-dev-shm-usage",
+		"--disable-features=VizDisplayCompositor",
+		"--disable-features=IsolateOrigins,site-per-process",
+		"--disable-site-isolation-trials",
+		"--disable-web-security",
+	}}
+	chromeOptions.AddExtension(chromeProxyExtFileName)
+	caps.AddChrome(chromeOptions)
+
 	driver, err := selenium.NewRemote(caps, "")
 	if err != nil {
 		return nil, apperrors.SeleniumChromeScrapperScrapNewRemoteError.AppendMessage(err)
@@ -84,21 +104,11 @@ func (s *SeleniumChromeScrapper) Scrap(url string) (*scrappers.ScrapperData, err
 func (s SeleniumChromeScrapper) addCapabilities() selenium.Capabilities {
 	caps := selenium.Capabilities{}
 	args := []string{}
-	if s.proxyIp == "" {
-		args = append(args, "--headless")
-	} else {
-		args = append(args, "--headless")
-		args = append(args, "--proxy-server="+s.smartproxy.Host+":"+s.smartproxy.Port)
-		proxy := selenium.Proxy{
-			Type: selenium.Manual,
-			HTTP: s.smartproxy.String(),
-		}
-		caps.AddProxy(proxy)
-	}
+	// args = append(args, "--headless")
 
 	// madify request headers to avoid detection
 	args = append(args, []string{
-		"--headless=new",
+		"--headless",
 		"--user-agent=" + s.userAgent,
 		"--disable-blink-features=AutomationControlled",
 		"--disable-dev-shm-usage",
