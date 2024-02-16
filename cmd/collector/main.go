@@ -40,6 +40,7 @@ func main() {
 	}
 
 	scrapper := httpscrapper.NewHttpScpaper()
+	// scrapper := seleniumchromescrapper.NewSeleniumChromeScrapper(cfg.Selenium.ChromeDriverPath, cfg.Selenium.ChromeDriverPort)
 
 	collectorRepo := repository.NewCollectorMongoDBRepository(cfg, db, context.TODO())
 	collectorService := services.NewCollectorService(smartproxyObject, cfg.Selenium.ChromeDriverPath, cfg.Selenium.ChromeDriverPort, collectorRepo, scrapper)
