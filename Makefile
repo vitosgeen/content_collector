@@ -34,6 +34,14 @@ stop:
 	echo "Stopping docker environment"
 	docker-compose stop
 
-down:
-	echo "Stopping docker environment"
-	docker-compose down
+dev-down:
+	echo "Stopping docker dev environment"
+	docker-compose --env-file ./configs/.env -f deployments/docker-compose.dev.yml down
+
+prod-down:
+	echo "Stopping docker prod environment"
+	docker-compose --env-file ./configs/.env -f deployments/docker-compose.prod.yml down
+
+local-down:
+	echo "Stopping docker local environment"
+	docker-compose --env-file ./configs/.env -f deployments/docker-compose.local.yml down
