@@ -1,0 +1,13 @@
+openapi: '3.0.2'
+info:
+  title: Content collector API
+  version: '1.0'
+servers:
+  - url: http://localhost:8999
+    description: Development server
+paths:
+  /test:
+    get:
+      responses:
+        '200':
+          description: OK
