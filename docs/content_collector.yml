@@ -3,7 +3,7 @@ info:
   title: Content collector API
   version: '1.0'
 servers:
-  - url: http://localhost:8999
+  - url: http://localhost:8998
     description: Development server
   - url: https://stage.scraper.uwr.in.ua
     description: Staging server
