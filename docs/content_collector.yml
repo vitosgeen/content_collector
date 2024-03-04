@@ -1,0 +1,98 @@
+openapi: '3.0.2'
+info:
+  title: Content collector API
+  version: '1.0'
+servers:
+  - url: http://localhost:8999
+    description: Development server
+  - url: https://stage.scraper.uwr.in.ua
+    description: Staging server
+  - url: https://scraper.uwr.in.ua
+    description: Production server
+paths:
+  /health:
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'ok'
+  /collector-data:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: 'https://www.example.com'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    example: 'https://www.example.com'
+                  data:
+                    type: string
+                    example: 'Some data'
+                  length:
+                    type: integer
+                    example: 9
+                  code:
+                    type: integer
+                    example: 200
+                  status:
+                    type: string
+                    example: 'ok'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                  error_code:
+                    type: string
+                    example: 'invalid_url'
+                  status:
+                    type: string
+                    example: 'error'
+                  error:
+                    type: string
+                    example: 'Bad request'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 500
+                  error_code:
+                    type: string
+                    example: 'internal_server_error'
+                  status:
+                    type: string
+                    example: 'error'
+                  error:
+                    type: string
+                    example: 'Internal server error'

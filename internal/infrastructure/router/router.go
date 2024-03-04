@@ -16,6 +16,9 @@ func NewRouter(e *echo.Echo, collectorController controller.ICollectorController
 
 	e.POST("/collector-data", collectorController.GetData)
 	e.GET("/collector-data-clearing", collectorController.Clearing)
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(200, "OK")
+	})
 
 	return e
 }

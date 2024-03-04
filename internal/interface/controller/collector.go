@@ -45,18 +45,46 @@ func (controller *CollectorController) GetData(ctx echo.Context) error {
 	err := ctx.Bind(request)
 	if err != nil {
 		appError := apperrors.ControllerCollectorGetDataError.AppendMessage(err)
-		return ctx.JSON(appError.HTTPCode, appError.Message)
+		responseError := model.CollectResponseError{
+			Code:   http.StatusBadRequest,
+			Status: http.StatusText(http.StatusBadRequest),
+			Error:  "Invalid Object Bind",
+		}
+		return ctx.JSON(appError.HTTPCode, responseError)
 	}
 	err = ctx.Validate(request)
 	if err != nil {
 		appError := apperrors.ControllerCollectorGetDataError.AppendMessage(err)
-		return ctx.JSON(appError.HTTPCode, appError.Message)
+		responseError := model.CollectResponseError{
+			Code:      http.StatusBadRequest,
+			ErrorCode: appError.Code,
+			Status:    http.StatusText(http.StatusBadRequest),
+			Error:     "Invalid Object Validate",
+		}
+		return ctx.JSON(appError.HTTPCode, responseError)
 	}
+	if !model.IsValidUrl(request.Url) {
+		appError := apperrors.ControllerCollectorGetDataError.AppendMessage(err)
+		responseError := model.CollectResponseError{
+			Code:      http.StatusBadRequest,
+			ErrorCode: appError.Code,
+			Status:    http.StatusText(http.StatusBadRequest),
+			Error:     "Invalid URL",
+		}
+		return ctx.JSON(appError.HTTPCode, responseError)
+	}
+
 	// call service
 	scrapperData, err := controller.CollectorService.Collect(request.Url)
 	if err != nil {
 		appError := apperrors.ControllerCollectorCollect.AppendMessage(err)
-		return ctx.JSON(appError.HTTPCode, appError.Message)
+		responseError := model.CollectResponseError{
+			Code:      scrapperData.Code,
+			ErrorCode: appError.Code,
+			Status:    scrapperData.Status,
+			Error:     appError.Message,
+		}
+		return ctx.JSON(appError.HTTPCode, responseError)
 	}
 
 	response := model.CollectResponse{
