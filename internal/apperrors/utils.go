@@ -18,6 +18,11 @@ var (
 		Code:     "SELENIUM_CHROME_SCRAPPER_SCRAP_MAXIMIZE_WINDOW_ERR",
 		HTTPCode: http.StatusInternalServerError,
 	}
+	SeleniumChromeScrapperScrapExecuteScriptError = AppError{
+		Message:  "Failed to execute script",
+		Code:     "SELENIUM_CHROME_SCRAPPER_SCRAP_EXECUTE_SCRIPT_ERR",
+		HTTPCode: http.StatusInternalServerError,
+	}
 	SeleniumChromeScrapperScrapDriverGet = AppError{
 		Message:  "Failed to get driver",
 		Code:     "SELENIUM_CHROME_SCRAPPER_SCRAP_DRIVER_GET_ERR",
