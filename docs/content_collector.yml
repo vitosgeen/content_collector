@@ -3,13 +3,22 @@ info:
   title: Content collector API
   version: '1.0'
 servers:
-  - url: http://localhost:8998
-    description: Development server
-  - url: https://stage.scraper.uwr.in.ua
-    description: Staging server
   - url: https://scraper.uwr.in.ua
     description: Production server
 paths:
+  /ping:
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'pong'
   /health:
     get:
       responses:
