@@ -102,9 +102,9 @@ func (h *HttpScpaper) Scrap(urlTarget string) (*scrappers.ScrapperData, error) {
 		return nil, err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("status code: %d", response.StatusCode)
-	}
+	// if response.StatusCode != http.StatusOK {
+	// 	return nil, fmt.Errorf("status code: %d", response.StatusCode)
+	// }
 	bodyString := fmt.Sprintf("%s\n", body)
 
 	scrapperData := &scrappers.ScrapperData{
