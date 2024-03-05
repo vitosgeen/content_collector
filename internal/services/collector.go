@@ -73,9 +73,11 @@ func (c *CollectorService) Collect(url string) (*scrappers.ScrapperData, error) 
 	}
 
 	collectorCreate := &model.CollectorRepository{
-		Url:    url,
-		Data:   scrapStruct.Data,
-		Status: model.CollectorRepositoryStatusActive,
+		Url:            url,
+		Data:           scrapStruct.Data,
+		DataCode:       scrapStruct.Code,
+		DataStatusText: scrapStruct.Status,
+		Status:         model.CollectorRepositoryStatusActive,
 	}
 	err = c.CollectorRepo.Create(collectorCreate)
 	if err != nil {
