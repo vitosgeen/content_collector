@@ -19,6 +19,7 @@ var (
 
 type ICollectorController interface {
 	GetData(c echo.Context) error
+	GetDataByURL(c echo.Context) error
 	Clearing(c echo.Context) error
 	// Create(c echo.Context) error
 	// Update(c echo.Context) error
@@ -89,6 +90,48 @@ func (controller *CollectorController) GetData(ctx echo.Context) error {
 
 	response := model.CollectResponse{
 		Url:    request.Url,
+		Data:   scrapperData.Data,
+		Length: len(scrapperData.Data),
+		Code:   scrapperData.Code,
+		Status: scrapperData.Status,
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+// GetDataByURL is a method of the CollectorController struct that handles the HTTP GET request to collect data by URL.
+// It validates the request, calls the CollectorService to collect data from the specified URL,
+// and returns the collected data as a JSON response.
+// If any error occurs during the process, it returns an appropriate error response.
+func (controller *CollectorController) GetDataByURL(ctx echo.Context) error {
+	// validate request
+	url := ctx.QueryParam("url")
+	if !model.IsValidUrl(url) {
+		appError := apperrors.ControllerCollectorGetDataByURLInvalidURL
+		responseError := model.CollectResponseError{
+			Code:      http.StatusBadRequest,
+			ErrorCode: appError.Code,
+			Status:    http.StatusText(http.StatusBadRequest),
+			Error:     appError.Message,
+		}
+		return ctx.JSON(appError.HTTPCode, responseError)
+	}
+
+	// call service
+	scrapperData, err := controller.CollectorService.Collect(url)
+	if err != nil {
+		appError := apperrors.ControllerCollectorCollect.AppendMessage(err)
+		responseError := model.CollectResponseError{
+			Code:      scrapperData.Code,
+			ErrorCode: appError.Code,
+			Status:    scrapperData.Status,
+			Error:     appError.Message,
+		}
+		return ctx.JSON(appError.HTTPCode, responseError)
+	}
+
+	response := model.CollectResponse{
+		Url:    url,
 		Data:   scrapperData.Data,
 		Length: len(scrapperData.Data),
 		Code:   scrapperData.Code,

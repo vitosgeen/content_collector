@@ -33,6 +33,25 @@ paths:
                     type: string
                     example: 'ok'
   /collector-data:
+    get:
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 'https://www.example.com'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'ok'
     post:
       requestBody:
         required: true
