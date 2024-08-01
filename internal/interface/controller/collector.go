@@ -107,7 +107,7 @@ func (controller *CollectorController) GetDataByURL(ctx echo.Context) error {
 	// validate request
 	url := ctx.QueryParam("url")
 	if !model.IsValidUrl(url) {
-		appError := apperrors.ControllerCollectorGetDataByURLInvalidURL
+		appError := apperrors.ControllerCollectorGetDataByURLInvalidURL.AppendMessage(nil)
 		responseError := model.CollectResponseError{
 			Code:      http.StatusBadRequest,
 			ErrorCode: appError.Code,
